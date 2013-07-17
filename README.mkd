@@ -1,0 +1,8 @@
+crawl
+=====
+
+yet another web crawler
+
+crawls specified url up to specified depth and outputs formatted tree-like json representation of result to stdout
+any errors are reported to stderr
+doesn't scan same urls twice, doesn't scan urls from different domains (unless told to)
