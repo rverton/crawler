@@ -76,7 +76,7 @@ func (root *page) crawl(wg *sync.WaitGroup) {
 				Links: make([]*page, 0),
 			}
 			// if already in the tree or not a valid url, don't mark for scanning
-			if root.lookup(url) != nil || err != nil {
+			if root.lookup(url) != nil || err != nil || url.Host != p.URL.Host {
 				newp.scanned = true
 			}
 			p.Links = append(p.Links, newp)
