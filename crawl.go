@@ -20,6 +20,7 @@ var (
 	maxDepth    = flag.Int("d", 1, "depth of crawling")
 	nworkers    = flag.Int("w", 2, "number of concurrent workers")
 	scanForeign = flag.Bool("f", false, "scan urls with different hostname")
+	ident       = flag.Bool("h", false, "make output human-readable (ident)")
 )
 
 // helper type for json pretty-printing
@@ -149,6 +150,7 @@ func (p *page) scan() []string {
 }
 
 func main() {
+	flag.Parse()
 	wg := &sync.WaitGroup{}
 
 	root := &page{
@@ -167,7 +169,12 @@ func main() {
 	}
 	wg.Wait()
 
-	tree, err := json.MarshalIndent(*root, "", "\t")
+	var tree []byte
+	if *ident {
+		tree, err = json.MarshalIndent(*root, "", "\t")
+	} else {
+		tree, err = json.Marshal(*root)
+	}
 	if err != nil {
 		log.Println(err)
 		return
