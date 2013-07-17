@@ -2,9 +2,10 @@ package main
 
 import (
 	"code.google.com/p/go.net/html"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 )
 
@@ -14,15 +15,15 @@ const (
 )
 
 type page struct {
-	URL      string
-	Depth    int
-	canCrawl bool
-	Links    []*page
+	URL     *url.URL
+	Depth   int
+	scanned bool
+	Links   []*page
 	sync.Mutex
 }
 
 func (p *page) nextPage() *page {
-	if p.canCrawl && p.Depth < MAXDEPTH {
+	if !p.scanned && p.Depth < MAXDEPTH {
 		return p
 	}
 	for _, v := range p.Links {
@@ -33,8 +34,9 @@ func (p *page) nextPage() *page {
 	return nil
 }
 
-func (p *page) lookup(URL string) *page {
-	if p.URL == URL {
+func (p *page) lookup(URL *url.URL) *page {
+	//fmt.Println("\t", p.URL.String(), URL.String(), p.URL.String() == URL.String())
+	if p.URL.String() == URL.String() {
 		return p
 	}
 	for _, v := range p.Links {
@@ -55,7 +57,7 @@ func (root *page) crawl(wg *sync.WaitGroup) {
 			root.Unlock()
 			return
 		}
-		p.canCrawl = false
+		p.scanned = true
 		root.Unlock()
 
 		fmt.Println("scanning", p.URL)
@@ -63,15 +65,19 @@ func (root *page) crawl(wg *sync.WaitGroup) {
 		urls := p.scan()
 
 		root.Lock()
-		for _, URL := range urls {
-			newp := &page{
-				URL:      URL,
-				Depth:    p.Depth + 1,
-				canCrawl: true,
-				Links:    make([]*page, 0),
+		for _, urlStr := range urls {
+			url, err := url.Parse(urlStr)
+			if err == nil && !url.IsAbs() {
+				url, err = p.URL.Parse(urlStr)
 			}
-			if root.lookup(URL) != nil {
-				newp.canCrawl = false
+			newp := &page{
+				URL:   url,
+				Depth: p.Depth + 1,
+				Links: make([]*page, 0),
+			}
+			// if already in the tree or not a valid url, don't mark for scanning
+			if root.lookup(url) != nil || err != nil {
+				newp.scanned = true
 			}
 			p.Links = append(p.Links, newp)
 		}
@@ -81,7 +87,7 @@ func (root *page) crawl(wg *sync.WaitGroup) {
 
 func (p *page) scan() []string {
 	urls := make([]string, 0)
-	resp, err := http.Get(p.URL)
+	resp, err := http.Get(p.URL.String())
 	if err != nil {
 		fmt.Println(err)
 		return urls
@@ -115,9 +121,13 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	root := &page{
-		URL:      "http://golang.org",
-		canCrawl: true,
-		Links:    make([]*page, 0),
+		Links: make([]*page, 0),
+	}
+	var err error
+	root.URL, err = url.Parse("http://golang.org/")
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	for i := 0; i < NWORKERS; i++ {
@@ -125,10 +135,10 @@ func main() {
 		go root.crawl(wg)
 	}
 	wg.Wait()
-	tree, err := json.MarshalIndent(*root, "", "\t")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(string(tree))
+	//tree, err := json.MarshalIndent(*root, "", "\t")
+	//if err != nil {
+	//fmt.Println(err)
+	//return
+	//}
+	//fmt.Println(string(tree))
 }
