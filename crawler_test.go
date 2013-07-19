@@ -14,19 +14,12 @@ func TestScheduler(t *testing.T) {
 
 	in, out := Start()
 
-	// Timeout for channel
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(TIMEOUT * time.Second)
-		timeout <- true
-	}()
-
 	go func() {
 		select {
 		case <-out:
 			t.Log(out)
 			wg.Done()
-		case <-timeout:
+		case <-time.After(TIMEOUT * time.Second):
 			t.Error("Timeout, no result received")
 			wg.Done()
 		}
