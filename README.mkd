@@ -1,7 +1,7 @@
 crawler
 =====
 
-yet another web crawling lib
+web crawling lib
 
 crawls specified url up to specified depth.
 doesn't scan same urls twice, doesn't scan urls from different domains.
