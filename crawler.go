@@ -1,6 +1,5 @@
-// Crawler
-
-package main
+// Crawling package
+package crawler
 
 import (
 	"code.google.com/p/go.net/html"
@@ -12,6 +11,11 @@ import (
 
 const (
 	WORKERS = 4 // Concurrent workers
+)
+
+var (
+	in  chan string
+	out chan []string
 )
 
 type site struct {
@@ -134,12 +138,13 @@ func (root *site) crawl(wg *sync.WaitGroup) {
 	}
 }
 
-func NewRootSite(urlString string, depth int) *site {
+func newRootSite(urlString string, depth int) *site {
 	root := &site{}
 
 	urlObj, err := url.Parse(urlString)
 	if err != nil {
 		log.Printf("Error parsing: %v", urlString)
+		return nil
 	}
 
 	root.url = urlObj
@@ -152,19 +157,41 @@ func NewRootSite(urlString string, depth int) *site {
 	return root
 }
 
-func main() {
-	wg := &sync.WaitGroup{}
+// Returns in and out channel to schedule a crawling process.
+func Start() (chan string, chan []string) {
 
-	root := NewRootSite("http://golang.org", 1)
+	buffer := 5
 
-	for i := 0; i < WORKERS; i++ {
-		wg.Add(1)
-		go root.crawl(wg)
+	in = make(chan string, buffer)
+	out = make(chan []string, buffer)
+
+	// Wait for incoming urls and push result to out
+	scheduler := func() {
+
+		for v := range in {
+			wg := &sync.WaitGroup{}
+
+			root := newRootSite(v, 1)
+
+			for i := 0; i < WORKERS; i++ {
+				wg.Add(1)
+				go root.crawl(wg)
+			}
+
+			wg.Wait()
+
+			urls := make([]string, 0)
+
+			for k, _ := range root.Links {
+				urls = append(urls, k)
+			}
+
+			out <- urls
+		}
 	}
 
-	wg.Wait()
+	go scheduler()
 
-	for k, _ := range root.Links {
-		log.Printf(" - %v", k)
-	}
+	return in, out
+
 }
