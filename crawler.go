@@ -22,6 +22,7 @@ type Crawl struct {
 	URL    string
 	Depth  int
 	Result site
+	ID     string // Identification for 3rd party
 }
 
 type site struct {
