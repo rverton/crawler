@@ -14,9 +14,15 @@ const (
 )
 
 var (
-	in  chan string
-	out chan []string
+	in  chan Crawl
+	out chan Crawl
 )
+
+type Crawl struct {
+	URL    string
+	Depth  int
+	Result site
+}
 
 type site struct {
 	url   *url.URL
@@ -105,7 +111,6 @@ func (root *site) crawl(wg *sync.WaitGroup) {
 		urls := scan(*scanUrl)
 		root.Lock()
 		for _, v := range urls {
-
 			urlObj, err := url.Parse(v)
 			if err != nil {
 				continue
@@ -158,12 +163,12 @@ func newRootSite(urlString string, depth int) *site {
 }
 
 // Returns in and out channel to schedule a crawling process.
-func Start() (chan string, chan []string) {
+func Start() (chan Crawl, chan Crawl) {
 
-	buffer := 5
+	buffer := 3
 
-	in = make(chan string, buffer)
-	out = make(chan []string, buffer)
+	in = make(chan Crawl, buffer)
+	out = make(chan Crawl, buffer)
 
 	// Wait for incoming urls and push result to out
 	go func() {
@@ -171,7 +176,7 @@ func Start() (chan string, chan []string) {
 		for v := range in {
 			wg := &sync.WaitGroup{}
 
-			root := newRootSite(v, 1)
+			root := newRootSite(v.URL, v.Depth)
 
 			for i := 0; i < WORKERS; i++ {
 				wg.Add(1)
@@ -180,13 +185,8 @@ func Start() (chan string, chan []string) {
 
 			wg.Wait()
 
-			urls := make([]string, 0)
-
-			for k, _ := range root.Links {
-				urls = append(urls, k)
-			}
-
-			out <- urls
+			v.Result = *root
+			out <- v
 		}
 	}()
 

@@ -16,8 +16,8 @@ func TestScheduler(t *testing.T) {
 
 	go func() {
 		select {
-		case <-out:
-			t.Log(out)
+		case res := <-out:
+			t.Log(res.Result)
 			wg.Done()
 		case <-time.After(TIMEOUT * time.Second):
 			t.Error("Timeout, no result received")
@@ -26,7 +26,7 @@ func TestScheduler(t *testing.T) {
 	}()
 
 	wg.Add(1)
-	in <- "http://golang.org"
+	in <- Crawl{URL: "http://golang.org", Depth: 0}
 
 	wg.Wait()
 }
