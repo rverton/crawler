@@ -153,11 +153,15 @@ func newRootSite(urlString string, depth int) *site {
 		return nil
 	}
 
+	if urlObj.Path == "" {
+		urlObj.Path = "/"
+	}
+
 	root.url = urlObj
 	root.Depth = depth
 
 	links := make(map[string]link, 0)
-	links[urlString] = link{scanned: false, depth: 0}
+	links[urlObj.String()] = link{scanned: false, depth: 0}
 	root.Links = links
 
 	return root
