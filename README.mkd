@@ -1,9 +1,11 @@
 crawler
 =====
 
-yet another web crawler
+yet another web crawling lib
 
 crawls specified url up to specified depth.
-doesn't scan same urls twice, doesn't scan urls from different domains (unless told to)
+doesn't scan same urls twice, doesn't scan urls from different domains.
 
----
+Take a look at the test file for a usage example.
+
+
