@@ -166,7 +166,7 @@ func Start() (chan string, chan []string) {
 	out = make(chan []string, buffer)
 
 	// Wait for incoming urls and push result to out
-	scheduler := func() {
+	go func() {
 
 		for v := range in {
 			wg := &sync.WaitGroup{}
@@ -188,10 +188,7 @@ func Start() (chan string, chan []string) {
 
 			out <- urls
 		}
-	}
-
-	go scheduler()
+	}()
 
 	return in, out
-
 }
