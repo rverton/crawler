@@ -1,84 +1,9 @@
-crawl
+crawler
 =====
 
 yet another web crawler
 
-crawls specified url up to specified depth and outputs tree-like json representation of result to stdout
-any errors are reported to stderr
+crawls specified url up to specified depth.
 doesn't scan same urls twice, doesn't scan urls from different domains (unless told to)
 
 ---
-
-example output (with -h flag for formatting):
-
-	{
-		"url": "http://golang.org/",
-		"depth": 0,
-		"links": [
-			{
-				"url": "http://golang.org/doc/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/ref/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/pkg/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/project/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/help/",
-				"depth": 1
-			},
-			{
-				"url": "http://play.golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://tour.golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/doc/install",
-				"depth": 1
-			},
-			{
-				"url": "http://blog.golang.org/",
-				"depth": 1
-			},
-			{
-				"url": "http://code.google.com/policies.html#restrictions",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/LICENSE",
-				"depth": 1
-			},
-			{
-				"url": "http://golang.org/doc/tos.html",
-				"depth": 1
-			},
-			{
-				"url": "http://www.google.com/intl/en/policies/privacy/",
-				"depth": 1
-			}
-		]
-	}
-
